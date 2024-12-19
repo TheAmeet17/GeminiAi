@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI Integration</title>
+</head>
+<body>
+    <h1>Chat with Gemini AI</h1>
+    <form id="gemini-form">
+        <label for="userInput">Enter your query:</label>
+        <input type="text" id="userInput" name="input" required>
+        <button type="submit">Send</button>
+    </form>
+    <div id="response"></div>
+
+    <script>
+        document.getElementById('gemini-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const userInput = document.getElementById('userInput').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/gemini-query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+
+                const data = await response.json();
+                console.log(data)
+                document.getElementById('response').innerText = data.message || 'No response from Gemini';
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('response').innerText = 'An error occurred while communicating with Gemini.';
+            }
+        });
+    </script>
+</body>
+</html>

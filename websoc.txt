@@ -1,0 +1,80 @@
+import express from 'express';
+import { createServer } from 'http';
+import { Server, Socket } from 'socket.io';
+
+// Initialize express and HTTP server
+const app = express();
+const server = createServer(app);
+
+// Initialize Socket.io with the HTTP server
+const io = new Server(server);
+
+// Listen for new connections
+io.on('connection', (socket: Socket) => {
+  console.log('A client connected.');
+
+  // Send a welcome message to the client
+  socket.emit('message', 'Welcome to the WebSocket server!');
+
+  // Listen for messages from the client
+  socket.on('chat message', (msg: string) => {
+    console.log(`Received message: ${msg}`);
+
+    // Broadcast the message to all clients
+    io.emit('chat message', msg);
+  });
+
+  // Handle client disconnection
+  socket.on('disconnect', () => {
+    console.log('A client disconnected.');
+  });
+});
+
+// Start the server
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+......................................................................................
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.io Chat</title>
+  <script src="/socket.io/socket.io.js"></script> <!-- Include Socket.io client -->
+</head>
+<body>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
+
+  <script>
+    // Connect to the Socket.io server
+    const socket = io();
+
+    // Listen for 'message' event and append it to the messages list
+    socket.on('message', function (msg) {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      document.getElementById('messages').appendChild(item);
+    });
+
+    // Listen for 'chat message' event and append it to the messages list
+    socket.on('chat message', function (msg) {
+      const item = document.createElement('li');
+      item.textContent = msg;
+      document.getElementById('messages').appendChild(item);
+    });
+
+    // Send the message when the form is submitted
+    document.getElementById('form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const input = document.getElementById('input');
+      socket.emit('chat message', input.value);
+      input.value = ''; // Clear the input field
+    });
+  </script>
+</body>
+</html>
